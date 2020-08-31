@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: techapp
+   namespace: default
+spec:
+   replicas: 1
+   revisionHistoryLimit: 3
+   strategy:
+        type: RollingUpdate
+   selector:
+     matchLabels:
+       app: webapp
+   template:
+     metadata:
+       labels:
+         app: webapp
+     spec:           
+        imagePullSecrets:
+              - name: techapp-secrets
+        containers:
+          - name: webapp
+            image: techapp.azurecr.io/techchallengeapp:#{version}#
+            imagePullPolicy: Always
+            command: ["/bin/sh","-c","./TechChallengeApp updatedb && ./TechChallengeApp serve"]            
+            resources:
+              requests:
+                  cpu: 100m
+                  memory: 200Mi
+              limits:
+                  cpu: 500m
+                  memory: 500Mi
+            ports:
+              - containerPort: 3000          
+            env:
+              - name: VTT_LISTENHOST
+                value: "0.0.0.0"
+              - name: VTT_DBPASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: techdb-secrets
+                    key: VTT_DBPASSWORD
+              - name: VTT_DBHOST
+                value: "10.0.0.4"
+              - name: VTT_DBUSER
+                valueFrom:
+                  secretKeyRef:
+                    name: techdb-secrets
+                    key: VTT_DBUSER
+        restartPolicy: Always
+        
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: techapp
+   namespace: default
+spec:
+   ports:
+     - port: 3000
+       targetPort: 3000
+   selector:
+      app: webapp
+   type: LoadBalancer
