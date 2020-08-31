@@ -35,7 +35,7 @@ stages:
         containerRegistry: '$(containerRegistry)'
         tags: |
           $(version) 
-     - task: replacetokens@3 # replacing the tags using "version" variable
+    - task: replacetokens@3 # replacing the tags using "version" variable
       displayName: Replace tokens in k8s manifest files
       inputs:
         rootDirectory: 'k8s'
