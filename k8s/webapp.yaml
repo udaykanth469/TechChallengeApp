@@ -22,7 +22,7 @@ spec:
           - name: webapp
             image: techapp.azurecr.io/techchallengeapp:#{version}#
             imagePullPolicy: Always
-            command: ["/bin/sh","-c","./TechChallengeApp updatedb && ./TechChallengeApp serve"]            
+            command: ["/bin/sh","-c","./TechChallengeApp updatedb -s && ./TechChallengeApp serve"]            
             resources:
               requests:
                   cpu: 100m
@@ -41,7 +41,10 @@ spec:
                     name: techdb-secrets
                     key: VTT_DBPASSWORD
               - name: VTT_DBHOST
-                value: "10.0.0.4"
+                valueFrom:
+                  secretKeyRef:
+                    name: techdb-secrets
+                    key: VTT_DBHOST
               - name: VTT_DBUSER
                 valueFrom:
                   secretKeyRef:
