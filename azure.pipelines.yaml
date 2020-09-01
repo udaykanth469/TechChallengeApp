@@ -19,12 +19,14 @@ stages:
     displayName: Build and Push Image
     pool:
       vmImage: $(vmImageName) # get latest ubuntu image from microsoft hosted pipelines"
-    steps:
+    steps:    
     - task: Bash@3 # Bash script to export env variable "version" with git command output
       displayName: 'GetTag'
       inputs:
         targetType: 'inline'
-        script: 'echo "##vso[task.setvariable variable=version;]$(git describe --tags)"'
+        script: |
+         echo "##vso[task.setvariable variable=version;]$(git describe --tags)"
+         echo "##vso[task.setvariable variable=tag;]$(git tag | sort -V | tail -1 | cut -b 3-7)"
       enabled: true
     - task: Docker@2 # build and push docker image to ACR
       displayName: Build and push an image to container registry
@@ -63,12 +65,15 @@ stages:
     - task: yrtimid.semver-bump-task.semver-bump-task.semver-bump@1
       displayName: 'Semver bump minor version'
       inputs:
-        VersionVariable: version
+        VersionVariable: tag
         IncrementLevel: minor
-    - task: ATP.ATP-GitTag.GitTag.GitTag@5 #It will only tag if previous tasks are successful"
-      displayName: 'GitTag '
+    - task: GitHubRelease@1
+      displayName: 'GitHub release (create)'
       inputs:
-        tagUser: udaykanth469
-        tagEmail: 'udaykanthr@gmail.com'
-        tag: 'v.$(version)'
-        tagMessage: 'Version bump to run build'
+        gitHubConnection: 'GitHub connection 1'
+        action: 'create'
+        tagSource: userSpecifiedTag
+        tag: 'v.$(tag)'
+        releaseNotesSource: inline
+        releaseNotesInline: 'version to bump'
+        addChangeLog: false
