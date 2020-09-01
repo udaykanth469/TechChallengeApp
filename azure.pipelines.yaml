@@ -59,7 +59,16 @@ stages:
         secretType: 'dockerRegistry'
         containerRegistryType: 'Azure Container Registry'
         outputFormat: 'yaml'
-      enabled: true
-      continueOnError: true
-    
-
+      enabled: true    
+    - task: yrtimid.semver-bump-task.semver-bump-task.semver-bump@1
+      displayName: 'Semver bump minor version'
+      inputs:
+        VersionVariable: version
+        IncrementLevel: minor
+    - task: ATP.ATP-GitTag.GitTag.GitTag@5 #It will only tag if previous tasks are successful"
+      displayName: 'GitTag '
+      inputs:
+        tagUser: udaykanth469
+        tagEmail: 'udaykanthr@gmail.com'
+        tag: 'v.$(version)'
+        tagMessage: 'Version bump to run build'
